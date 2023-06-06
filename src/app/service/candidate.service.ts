@@ -28,4 +28,10 @@ export class CandidateService {
   DeleteCandidate(id:string):Observable<Candidate>{
     return this.httpclient.delete<Candidate>(this.baseurl+'/'+id);
   }
+  GetCandidateByDateAndTime(date: string, time: string): Observable<Candidate[]> {
+   
+    const url = `${this.baseurl}/ByDateAndTime?date=${date}&time=${time}`;
+    return this.httpclient.get<Candidate[]>(url);
+  }
+
 }

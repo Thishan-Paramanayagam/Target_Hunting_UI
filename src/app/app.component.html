@@ -116,7 +116,7 @@
                    </div>
                    <div class="col-sm-12 mb-3">
                     <label>Date</label>
-                    <input type="date" class="form-control" required formControlName="date" [(ngModel)]="selectedDate">
+                    <input type="date" class="form-control" required formControlName="date" [(ngModel)]="selectedDate" (change)="onDateSelection()">
                     
                    </div>
                    <div class="col-sm-12 mb-3">

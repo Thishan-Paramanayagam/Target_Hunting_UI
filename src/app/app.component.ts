@@ -2,7 +2,6 @@ import { Component ,OnInit} from '@angular/core';
 import { FormBuilder, FormGroup ,Validators} from '@angular/forms';
 import { Candidate } from './models/candidate';
 import { CandidateService } from './service/candidate.service';
-import { TimeAvailabilityService } from './service/time-availability.service';
 import { take } from 'rxjs/operators';
 
 
@@ -28,7 +27,7 @@ pageSize: number = 5; // limit to 5
 Candidateformgroup : FormGroup;
   
 
- constructor(private cndservice:CandidateService,private fb:FormBuilder,private timeservice:TimeAvailabilityService) {
+ constructor(private cndservice:CandidateService,private fb:FormBuilder) {
   this.Candidateformgroup = this.fb.group({
     id: [""],
     name: ["", Validators.required],
@@ -52,7 +51,7 @@ ngOnInit(): void {
 getcandidatess(){
   this.cndservice.GetCandidate().subscribe(response =>{
     this.Candidateary = response
-    console.log(response);
+  //  console.log(response);
     this.sortCandidates();
     this.filteredCandidates = []; // Clear the filtered candidates array
   this.originalCandidates = this.Candidateary.slice();
@@ -67,7 +66,7 @@ OnSubmit(){
   console.log(this.Candidateformgroup.value);
   if(this.Candidateformgroup.value.id != null && this.Candidateformgroup.value.id != "" ){
     this.cndservice.UpdateCandidate(this.Candidateformgroup.value).subscribe(response =>{
-      console.log(response);
+    //  console.log(response);
       this.getcandidatess(); 
     });
       this.Candidateformgroup.setValue({
@@ -82,7 +81,7 @@ OnSubmit(){
   }
   else{
     this.cndservice.CreateCandidate(this.Candidateformgroup.value).subscribe(response =>{
-      console.log(response);
+    //  console.log(response);
       this.getcandidatess(); 
       this.selectedTime = this.timeSlots[0];
     });
@@ -123,7 +122,7 @@ FillForm(cnd:Candidate){
 //Removing details of a candidate function
 DeleteCandidate(id:string){
   this.cndservice.DeleteCandidate(id).subscribe(response =>{
-    console.log(response);
+   // console.log(response);
     this.getcandidatess(); 
     this.confirmDeleteModalVisible = false;
   });
@@ -187,6 +186,7 @@ openConfirmDeleteModal(candidateId: string) {
 timeSlotModalVisible: boolean = false;
 timeSlots: string[] = [];
 populateTimeSlots() {
+  this.timeSlots = [];
   const startTime = new Date();
   startTime.setHours(8, 0, 0); // Set start time to 8.00 AM
 
@@ -215,49 +215,23 @@ closeTimeSlotModal() {
   this.timeSlotModalVisible = false;
 }
 
-// selectTimeSlot(timeSlot: string) {
-//   this.selectedTime = timeSlot;
-//   this.Candidateformgroup.get('time')?.setValue(timeSlot); // Set the form control value with the selected time
-//   this.closeTimeSlotModal();
-// }
-async selectTimeSlot(timeSlot: string) {
-  const selectedDate = this.Candidateformgroup.get('date')?.value;
-
-  try {
-    // Check if the selected date exists in the database
-    this.timeservice.getExistingData().subscribe((response: any) => {
-      const existingData = response as any[];
-      const matchingEntry = existingData.find(entry => entry.date === selectedDate && timeSlot.includes(entry.time));
+onDateSelection() {
+  // Step 1: Query the database
+  this.cndservice.GetCandidateByDateAndTime(this.selectedDate, this.timeSlots[0]).subscribe((resp) => {
+    // Step 2: Handle the database response
+    if (resp.length > 0) {
       
-      if (matchingEntry) {
-        // Remove the matching time slot from the array
-        const indexToRemove = this.timeSlots.indexOf(matchingEntry.time);
-        if (indexToRemove !== -1) {
-          this.timeSlots[indexToRemove] = ''; 
-    
-          // Rearrange the array by setting the selectedTime to the first available time
-          this.selectedTime = this.timeSlots[0];
-          this.Candidateformgroup.get('time')?.setValue(this.selectedTime);
-
-         
-        }
-      } else {
-        // If no matching entry, set the default time slot to the first available time
-        this.selectedTime = this.timeSlots[0];
-        this.Candidateformgroup.get('time')?.setValue(this.selectedTime);
-      }
       
-      this.closeTimeSlotModal();
-    });
-  } catch (error) {
-    console.error('Error retrieving data from the database:', error);
-    // Handle the error as needed (e.g., show an error message)
-  }
+      
+      this.timeSlots.shift();
+      this.selectedTime = this.timeSlots[0];
+    }
+
+    else{
+      console.log("no response");
+    }
+  });
 }
-
-
-
-
 
 
 
